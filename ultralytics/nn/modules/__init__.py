@@ -66,6 +66,7 @@ from .conv import (
     ConvTranspose,
     DWConv,
     DWConvTranspose2d,
+    ECA,
     Focus,
     GhostConv,
     LightConv,

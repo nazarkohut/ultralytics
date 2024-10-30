@@ -332,6 +332,7 @@ class Concat(nn.Module):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
 
+
 class ResBlock_CBAM(nn.Module):
     def __init__(self, in_places, places, stride=1, downsampling=False, expansion=1):
         super(ResBlock_CBAM, self).__init__()
@@ -370,3 +371,20 @@ class ResBlock_CBAM(nn.Module):
         out += residual
         out = self.relu(out)
         return out
+
+
+class ECA(nn.Module):
+    def __init__(self, channels, gamma=2, b=1):
+        super().__init__()
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        t = int(abs((math.log(channels, 2) + b) / gamma))
+        k = t if t % 2 else t + 1
+        self.conv = nn.Conv1d(1, 1, kernel_size=k, padding=(k - 1) // 2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        y = self.avgpool(x)
+        y = self.conv(y.squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1)
+        y = self.sigmoid(y)
+        return x * y.expand_as(x)
+

@@ -35,6 +35,7 @@ from ultralytics.nn.modules import (
     C3k2,
     C3x,
     CBAM,
+    ECA,
     ResBlock_CBAM,
     CBFuse,
     CBLinear,
@@ -1035,7 +1036,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 legacy = False
                 if scale in "mlx":
                     args[3] = True
-        elif m in {CBAM}:
+        elif m in {CBAM, ECA}:
             c1, c2 = ch[f], args[0]
             if c2 != nc:
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
