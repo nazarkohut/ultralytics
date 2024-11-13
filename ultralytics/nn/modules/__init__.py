@@ -73,6 +73,7 @@ from .conv import (
     RepConv,
     ResBlock_CBAM,
     SpatialAttention,
+    SIMAM,
     OriginalCBAM,
     ResBlockOriginalCBAM,
 )
