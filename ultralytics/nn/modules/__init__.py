@@ -76,6 +76,7 @@ from .conv import (
     SIMAM,
     OriginalCBAM,
     ResBlockOriginalCBAM,
+    TripletAttention
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (

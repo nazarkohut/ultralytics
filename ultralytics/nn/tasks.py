@@ -40,6 +40,7 @@ from ultralytics.nn.modules import (
     ResBlock_CBAM,
     ResBlockOriginalCBAM,
     OriginalCBAM,
+    TripletAttention,
     CBFuse,
     CBLinear,
     Classify,
@@ -1045,6 +1046,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if c2 != nc:
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [c1, *args[1:]]
+        elif m in {TripletAttention}:
+            pass
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in {HGStem, HGBlock}:

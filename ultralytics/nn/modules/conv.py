@@ -24,6 +24,7 @@ __all__ = (
     "RepConv",
     "OriginalCBAM",
     "ResBlockOriginalCBAM",
+    "TripletAttention"
 )
 
 
@@ -504,4 +505,56 @@ class SIMAM(torch.nn.Module):
         y = x_minus_mu_square / (4 * (x_minus_mu_square.sum(dim=[2, 3], keepdim=True) / n + self.e_lambda)) + 0.5
 
         return x * self.activation(y)
+
+
+class BasicConv2d(nn.Module):
+    def __init__(self, in_channels, out_channels, ks):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=ks, stride=1,
+                              padding=(ks - 1) // 2)
+        self.bn = nn.BatchNorm2d(out_channels)
+        self.act = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.act(x)
+        return x
+
+## Triple attention
+class ZPool(nn.Module):
+    def forward(self, x):
+        x_mean = x.mean(dim=1, keepdim=True)
+        x_max = x.max(dim=1, keepdim=True)[0]
+        return torch.cat([x_mean, x_max], dim=1)
+
+
+class AttentionGate(nn.Module):
+    def __init__(self, kernel_size=7):
+        super().__init__()
+        self.compress = ZPool()
+        self.conv = BasicConv2d(2, 1, kernel_size)
+        self.activation = nn.Sigmoid()
+
+    def forward(self, x):
+        y = self.compress(x)
+        y = self.conv(y)
+        y = self.activation(y)
+        return x * y
+
+
+class TripletAttention(nn.Module):
+    def __init__(self, kernel_size=7):
+        super().__init__()
+        self.ch = AttentionGate(kernel_size)
+        self.cw = AttentionGate(kernel_size)
+        self.hw = AttentionGate(kernel_size)
+        print(f"TripletAttention kernel size: {kernel_size}")
+
+    def forward(self, x):
+        b, c, h, w = x.shape
+        x_ch = self.ch(x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)  # c and h
+        x_cw = self.cw(x.permute(0, 2, 1, 3)).permute(0, 2, 1, 3)
+        x_hw = self.hw(x)
+        return 1 / 3 * (x_ch + x_cw + x_hw)
 
