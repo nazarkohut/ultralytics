@@ -68,6 +68,7 @@ from ultralytics.nn.modules import (
     Segment,
     WorldDetect,
     v10Detect,
+    ConvSIMAM,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -218,7 +219,7 @@ class BaseModel(nn.Module):
                     m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
                     delattr(m, "bn")  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
-                if isinstance(m, RepConv):
+                if isinstance(m, RepConv): # TODO: Have no understanding whether this one works at all as it is not displayed in onnx(even if fuse is commented)
                     m.fuse_convs()
                     m.forward = m.forward_fuse  # update forward
                 if isinstance(m, RepVGGDW):
@@ -974,7 +975,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in {
             Classify,
+            RepConv,
             Conv,
+            ConvSIMAM,
             ConvTranspose,
             GhostConv,
             Bottleneck,
@@ -1010,6 +1013,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2fCIB,
         }:
             c1, c2 = ch[f], args[0]
+            print(f"Parse model function: c1: {c1}; c2: {c2}; nc: {nc}")
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:
