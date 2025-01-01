@@ -9,6 +9,7 @@ import torch.nn as nn
 
 __all__ = (
     "Conv",
+    "ConvSIMAM",
     "Conv2",
     "LightConv",
     "DWConv",
@@ -56,6 +57,16 @@ class Conv(nn.Module):
     def forward_fuse(self, x):
         """Perform transposed convolution of 2D data."""
         return self.act(self.conv(x))
+
+
+class ConvSIMAM(Conv):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
+        super().__init__(c1, c2, k=k, s=s, p=p, g=g, d=d, act=act)
+        self.simam = SIMAM()
+
+    def forward(self, x):
+        base_output = super().forward(x)
+        return self.simam(base_output)
 
 
 class Conv2(Conv):
@@ -187,6 +198,7 @@ class RepConv(nn.Module):
     def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
         """Initializes Light Convolution layer with inputs, outputs & optional activation function."""
         super().__init__()
+        print(f"RepConv: c1: {c1}; c2: {c2} k: {k}; p: {p}")
         assert k == 3 and p == 1
         self.g = g
         self.c1 = c1

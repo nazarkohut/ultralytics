@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad, SIMAM, ConvSIMAM
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -244,6 +244,11 @@ class C2f(nn.Module):
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
+class C2fConvSIMAM(C2f):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        super().__init__(c1, c2, n=n, shortcut=shortcut, g=g, e=e)
+        self.cv1 = ConvSIMAM(c1, 2 * self.c, 1, 1)
+        self.cv2 = ConvSIMAM((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
 
 class C3(nn.Module):
     """CSP Bottleneck with 3 convolutions."""
