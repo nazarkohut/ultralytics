@@ -55,7 +55,7 @@ from .block import (
     RepNCSPELAN4,
     RepVGGDW,
     ResNetLayer,
-    SCDown,
+    SCDown, Fusion,
 )
 from .conv import (
     CBAM,
@@ -78,7 +78,7 @@ from .conv import (
     SIMAM,
     OriginalCBAM,
     ResBlockOriginalCBAM,
-    TripletAttention
+    TripletAttention, SubpixelUpscaler
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
 from .transformer import (
@@ -168,4 +168,6 @@ __all__ = (
     "C2fCIB",
     "Attention",
     "PSA",
+    "Fusion",
+    "SubpixelUpscaler"
 )

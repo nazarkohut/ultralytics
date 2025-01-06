@@ -68,7 +68,7 @@ from ultralytics.nn.modules import (
     Segment,
     WorldDetect,
     v10Detect,
-    ConvSIMAM, ConvSIMAMV2,
+    ConvSIMAM, ConvSIMAMV2, Fusion, SubpixelUpscaler,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1012,6 +1012,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             PSA,
             SCDown,
             C2fCIB,
+            SubpixelUpscaler,
         }:
             c1, c2 = ch[f], args[0]
             print(f"Parse model function: c1: {c1}; c2: {c2}; nc: {nc}")
@@ -1067,6 +1068,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
+        elif m is Fusion:
+            c1, c2 = [ch[x] for x in f], ch[f[0]]
+            args = [c1]
         elif m in {Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
             args.append([ch[x] for x in f])
             if m is Segment:

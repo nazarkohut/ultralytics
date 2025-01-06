@@ -49,6 +49,7 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
+    "Fusion"
 )
 
 
@@ -922,6 +923,19 @@ class Attention(nn.Module):
         x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
         return x
+
+
+class Fusion(nn.Module):
+    def __init__(self, inc_list) -> None:
+        super().__init__()
+
+        self.fusion_weight = nn.Parameter(torch.ones(len(inc_list), dtype=torch.float32), requires_grad=True)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        fusion_weight = self.relu(self.fusion_weight.clone())
+        fusion_weight = fusion_weight / (torch.sum(fusion_weight, dim=0))
+        return torch.sum(torch.stack([fusion_weight[i] * x[i] for i in range(len(x))], dim=0), dim=0)
 
 
 class PSABlock(nn.Module):

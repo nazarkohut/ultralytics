@@ -26,7 +26,8 @@ __all__ = (
     "RepConv",
     "OriginalCBAM",
     "ResBlockOriginalCBAM",
-    "TripletAttention"
+    "TripletAttention",
+    "SubpixelUpscaler"
 )
 
 
@@ -359,6 +360,24 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+
+
+class SubpixelUpscaler(nn.Module):
+    def __init__(self, in_channels, out_channels, upscale_factor):
+        super(SubpixelUpscaler, self).__init__()
+        self.conv = nn.Conv2d(
+            in_channels,
+            out_channels * (upscale_factor ** 2),
+            kernel_size=3,
+            stride=1,
+            padding=1
+        )
+        self.pixel_shuffle = nn.PixelShuffle(upscale_factor)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.pixel_shuffle(x)
+        return x
 
 
 class ResBlock_CBAM(nn.Module):
